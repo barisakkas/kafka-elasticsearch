@@ -1,5 +1,6 @@
 package com.baris.github;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -93,10 +94,12 @@ public class ElasticSearchConsumer {
 
     private static String extractIdFromTweet(String tweetJson){
         // gson library
-        return jsonParser.parse(tweetJson)
-                .getAsJsonObject()
-                .get("id_str")
-                .getAsString();
+
+            return jsonParser.parse(tweetJson)
+                    .getAsJsonObject()
+                    .get("id_str")
+                    .getAsString();
+
     }
 
     public static void main(String[] args) throws IOException {
@@ -115,21 +118,28 @@ public class ElasticSearchConsumer {
                 if (record.value().length() < 15)
                     continue;
 
-                IndexRequest indexRequest = new IndexRequest(
-                        "twitter",
-                        "tweets"
-                ).source(record.value(), XContentType.JSON);
-
-                IndexResponse response = client.index(indexRequest, RequestOptions.DEFAULT);
-
-                logger.info(response.getId());
-
                 try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
 
+                    String id = extractIdFromTweet(record.value());
+
+                    IndexRequest indexRequest = new IndexRequest(
+                            "twitter",
+                            "tweets",
+                            id
+                    ).source(record.value(), XContentType.JSON);
+
+                    IndexResponse response = client.index(indexRequest, RequestOptions.DEFAULT);
+
+                    logger.info(response.getId());
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }catch (NullPointerException e){
+                    logger.info("Skipping bad data");
+                }
                 //client.close();
 
             }
