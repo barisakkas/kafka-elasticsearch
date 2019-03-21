@@ -3,5 +3,8 @@
 .idea/encodings.xml
 .idea/misc.xml
 .idea/workspace.xml
+.idea/*
 .project
 .settings/*
+target/
+kafka-consumer-elasticsearch/target/*
